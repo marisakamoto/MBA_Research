@@ -3,7 +3,7 @@
     "path": "E:/DataScienceMBA/TCC/Code/HouseValuesTimeSeries.Rmd",
     "project_path": "HouseValuesTimeSeries.Rmd",
     "type": "r_markdown",
-    "hash": "0",
+    "hash": "3371396603",
     "contents": "",
     "dirty": false,
     "created": 1660504775092.0,
@@ -18,11 +18,11 @@
         "scrollLine": "67"
     },
     "folds": "",
-    "lastKnownWriteTime": 1660525650,
+    "lastKnownWriteTime": 1660526486,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1660525987476,
+    "last_content_update": 1660526484707,
     "read_only": false,
     "read_only_alternatives": []
 }
