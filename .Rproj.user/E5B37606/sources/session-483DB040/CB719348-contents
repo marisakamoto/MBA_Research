@@ -38,3 +38,30 @@ group_dwelling  %>% summarise( ave = mean(Value,na.rm = TRUE) ,med = median(Valu
 
 ```
 
+```{r}
+
+interval <- 2010:2022
+hpa %>% filter (Year %in% interval) %>% 
+ggplot(aes(x = factor(Year), y = Value, fill = factor(Sale))) + geom_boxplot(outlier.shape=NA) + facet_wrap(~Sale, nrow = 10) + xlab("Year")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +ylim(0, 500000)
+```
+```{r}
+
+interval <- 2010:2022
+hpa %>% filter (Year %in% interval) %>% 
+ggplot(aes(x = factor(Year), y = Value, fill = factor(Dwelling))) + geom_boxplot(outlier.shape=NA) + facet_wrap(~Dwelling, nrow = 10) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) +ylim(0, 500000)
+```
+```{r}
+
+interval <- 2010:2022
+hpa %>% filter (Year %in% interval) %>% 
+ggplot(aes(x = factor(Year), y = Value, fill = factor(Stamp))) + geom_boxplot(outlier.shape=NA) + facet_wrap(~Stamp, nrow = 10) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) +ylim(0, 500000)
+```
+
+
+```{r}
+
+interval <- 2010:2022
+hpa %>% filter (Year %in% interval) %>% 
+ggplot(aes(x = factor(Year), y = Value, fill = factor(County))) + geom_boxplot(outlier.shape=NA) + facet_wrap(~County) +ylim(0, 500000)
+```

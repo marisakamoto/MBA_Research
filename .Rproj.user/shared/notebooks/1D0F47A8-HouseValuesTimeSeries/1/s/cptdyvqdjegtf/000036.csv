@@ -1,0 +1,5 @@
+"0",""
+"0","interval <- 2010:2022"
+"0","hpa %>% filter (Year %in% interval) %>% "
+"0","ggplot(aes(x = factor(Year), y = Value, fill = factor(Sale))) + geom_boxplot(outlier.shape=NA) + facet_wrap(~Sale, nrow = 10) + xlab(""Year"")+"
+"0","  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +ylim(0, 500000)"
