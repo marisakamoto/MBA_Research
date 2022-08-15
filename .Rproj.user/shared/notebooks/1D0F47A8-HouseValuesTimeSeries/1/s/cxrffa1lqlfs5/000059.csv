@@ -1,0 +1,5 @@
+"0",""
+"0","interval <- 2010:2022"
+"0","p<-by_county %>% filter (Year %in% interval) %>% "
+"0","ggplot(aes(x =Year, y = med, group = County, color = factor(County))) + geom_line()  +ylim(0, 500000) + ylab(""Median of House Values"")"
+"0","plotly::ggplotly(p)"
