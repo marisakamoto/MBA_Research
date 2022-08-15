@@ -1,0 +1,40 @@
+---
+title: "Housing Crisis"
+output: html_notebook
+---
+```{r}
+library(readr)
+library(ggplot2)
+library("tidyverse")
+library("dplyr")
+```
+
+1. Importing the Data
+1.1. Housing Prices Database
+```{r}
+hpa <- read_csv("E:/DataScienceMBA/TCC/Database/HPA02.20220813T000818.csv", show_col_types = FALSE)
+
+
+
+new_names <- c("Stat", "Year", "County","Dwelling", "Stamp", "Buyer", "Sale", "Unit", "Value")
+
+names(hpa) <- new_names
+head(hpa)
+
+group_sale <- group_by(hpa, Sale, Year)
+group_county <- group_by(hpa, County, Year)
+group_stamp <- group_by(hpa, Stamp, Year)
+group_dwelling <- group_by(hpa, Dwelling, Year)
+
+group_sale  %>%summarise( ave = mean(Value,na.rm = TRUE) ,med = median(Value,na.rm = TRUE), max = max(Value,na.rm = TRUE), min = min(Value,na.rm = TRUE))
+
+
+group_county  %>% summarise( ave = mean(Value,na.rm = TRUE) ,med = median(Value,na.rm = TRUE), max = max(Value,na.rm = TRUE), min = min(Value,na.rm = TRUE))
+
+group_stamp  %>% summarise( ave = mean(Value,na.rm = TRUE) ,med = median(Value,na.rm = TRUE), max = max(Value,na.rm = TRUE), min = min(Value,na.rm = TRUE))
+
+
+group_dwelling  %>% summarise( ave = mean(Value,na.rm = TRUE) ,med = median(Value,na.rm = TRUE), max = max(Value,na.rm = TRUE), min = min(Value,na.rm = TRUE))
+
+```
+
