@@ -1,0 +1,350 @@
+---
+title: "HousingCrisis"
+output: html_document
+date: "2023-02-05"
+---
+
+## Setup
+
+```{r setup, include=FALSE}
+
+library(readr)
+library(ggplot2)
+library("tidyverse")
+library("dplyr")
+library("plotly")
+library(data.table)
+install.packages("csodata")
+library(csodata)
+
+
+toc <- cso_get_toc()
+
+```
+
+## Data Sources
+
+```{r population, echo = FALSE, warning=FALSE}
+# Number of New House Registration by quarters from 1994 to 2022
+
+PEA01  <- cso_get_data("PEA01")
+PEA01
+PEA04  
+
+PEA01_filter <- 
+  PEA01 %>% filter(Sex == "Both sexes", Age.Group == "All ages", )
+
+PEA01_filter
+
+population <-
+  PEA01_filter %>% gather(Year,VALUE , 3:76, -STATISTIC, -Sex, -Age.Group)
+
+population$Year <- as.numeric(population$Year)
+
+p <-population %>% 
+ggplot(aes(x = Year, y = VALUE)) + geom_line()  + ylab("New Houses Registered")
+
+plotly::ggplotly(p)
+
+```
+
+```{r houseQuantity, echo = FALSE, warning=FALSE}
+# Number of New House Registration by quarters from 1994 to 2022
+
+newHousesRegistrated <- read_csv("D:/DataScienceMBA/TCC/Database/HSQ10.20230205T120241.csv")
+
+HSQ10 <- cso_get_data("HSQ10")
+
+newHousesRegistrated <-
+  HSQ10 %>% gather(Quarter,VALUE , 3:116, -STATISTIC, -County)
+
+newHousesRegistrated$Year <- as.integer(substr(newHousesRegistrated$Quarter,1,4))
+
+group_year <-  group_by(newHousesRegistrated, County, Year)
+
+by_group <- group_year %>% summarise( ave = mean(VALUE,na.rm = TRUE) 
+                       ,sum = sum(VALUE,na.rm = TRUE)
+                        , med = median(VALUE,na.rm = TRUE)
+                       , max = max(VALUE,na.rm = TRUE)
+                       , min = min(VALUE,na.rm = TRUE))
+
+p <-by_group %>% 
+ggplot(aes(x = Year, y = sum, group = County, color = County)) + geom_line()  + ylab("New Houses Registered")
+
+plotly::ggplotly(p)
+
+```
+
+
+
+
+```{r moreDatabase, echo = FALSE, warning=FALSE}
+
+
+# DIsposable Income by Year from 2005 to 2019
+# https://www.cso.ie/en/releasesandpublications/ep/p-silc/surveyonincomeandlivingconditionssilc2020/income/
+# By tenure SIA66 SIA52 SIA13 sia68
+
+
+# SIA13 <- read_csv("D:/DataScienceMBA/TCC/Database/SIA13.20230205T150243.csv")
+
+SIA13 <- cso_get_data("SIA13")
+
+head(SIA13)
+SIA13_filter <- 
+  SIA13 %>% filter(Age.Group == "18 - 64 years", Statistic == "Median Nominal Household Disposable Income")
+
+disposableIncome1 <-
+  SIA13_filter %>% gather(Year,VALUE , 3:18, -Statistic, -Age.Group)
+```
+
+
+
+``` {r MakeEndsMeet}
+
+# SIA56 - Difficulty making ends meet
+SIA56 <- cso_get_data("SIA56")
+
+
+SIA56_filter <- 
+  SIA56 %>% filter(Household.Disposable.Income.Percentile == "40-59")
+
+makeEndsMeet <-
+  SIA56_filter %>% gather(Year,VALUE , 4:19, -Statistic, -Level.of.Household.Difficulty, -Household.Disposable.Income.Percentile)
+
+makeEndsMeet
+makeEndsMeet$Year <- as.integer(makeEndsMeet$Year)
+
+
+makeEndsMeet<- makeEndsMeet %>% mutate(level = ifelse(str_detect(Level.of.Household.Difficulty,'difficulty') , 'Hard','Easy'))
+
+
+group_mix <-  group_by(makeEndsMeet, Year, level)
+
+by_group <- group_mix %>% summarise( ave = mean(VALUE,na.rm = TRUE) 
+                       ,sum = sum(VALUE,na.rm = TRUE)
+                        , med = median(VALUE,na.rm = TRUE)
+                       , max = max(VALUE,na.rm = TRUE)
+                       , min = min(VALUE,na.rm = TRUE))
+
+
+fig <- by_group %>% count(Year, level)
+fig <- by_group %>% plot_ly(x = ~Year, y = ~sum, color = ~level)
+
+fig
+
+
+makeEndsMeet
+
+
+t_makeEndsMeet <- by_group %>% ungroup()  %>% filter(level == 'Hard')%>% select(Year, sum)
+
+```
+
+
+# HOUSEHOLD disposable income
+```{r disposableIncome, echo = FALSE, warning=FALSE}
+
+# DIsposable Income by Gender from 2004 to 2019
+SIA12 <- cso_get_data("SIA12")
+
+SIA12_filter <- 
+  SIA12 %>% filter(Sex == "Both sexes", Statistic == "Median Nominal Household Disposable Income")
+
+disposableIncome1 <-
+  SIA12_filter %>% gather(Year,VALUE , 3:18, -Statistic, -Sex)
+
+
+# DIsposable Income by Gender from 2020 to 2022
+SIA60 <- cso_get_data("SIA60")
+
+SIA60_filter <- 
+  SIA60 %>% filter(Sex == "Both sexes", Statistic == "Median Nominal Household Disposable Income")
+
+#dim(SIA60_filter)
+
+disposableIncome2 <-
+  SIA60_filter %>% gather(Year,VALUE , 3:5, -Statistic, -Sex)
+
+
+disposableIncome <- bind_rows(disposableIncome1,disposableIncome2)
+
+disposableIncome$Year <- as.numeric(disposableIncome$Year)
+
+
+
+p <-disposableIncome %>% 
+ggplot(aes(x = Year, y = VALUE,color = VALUE)) + geom_point()  + ylab("Disposable Income by Household")
+
+plotly::ggplotly(p)
+
+
+
+t_disposableIncome <- disposableIncome %>% ungroup()   %>% select(Year, VALUE)
+
+
+
+```
+# HOUSE PRICES
+
+```{r houseValues, echo = FALSE, warning=FALSE}
+
+# House Price from 2010 to 2021
+
+
+HPA02 <- cso_get_data("HPA02")
+
+HPA02_filter <- 
+  HPA02 %>% filter(Type.of.Buyer == "Household Buyer - All", Statistic == "Median Price", Type.of.Sale == "Market", Stamp.Duty.Event == "Filings", Dwelling.Status == "All Dwelling Statuses")
+
+
+houseValue <-
+  HPA02_filter %>% gather(Year,VALUE , 3:18, -Type.of.Buyer, -Statistic, -Type.of.Sale, -Stamp.Duty.Event,-Dwelling.Status)
+houseValue
+
+houseValue$Year <- as.numeric(houseValue$Year)
+p <-houseValue %>% 
+ggplot(aes(x = Year, y = VALUE,color = County, group = County)) + geom_line()  + ylab("Average House Price")
+
+ggplotly(p)
+
+t_houseValue <- houseValue %>% ungroup() %>% filter(County == 'All Counties')  %>% select(Year, VALUE)
+
+t_houseValue
+
+
+```
+
+``` {r House Index}
+# House Index
+
+
+HPM06 <- cso_get_data("HPM06")
+
+HPM06_filter <- 
+  HPM06 %>% filter(str_detect(Type.of.Residential.Property,"all residential properties"), Statistic == "Residential Property Price Index")
+
+
+houseIndex <-
+  HPM06_filter %>% gather(Month,VALUE , 3:217, -Type.of.Residential.Property, -Statistic, )
+houseIndex
+
+houseIndex$Year <- as.numeric(substr(houseIndex$Month,1,4))
+
+
+
+group_year <-  group_by(houseIndex, Year, Type.of.Residential.Property)
+
+by_group <- group_year %>% summarise( ave = mean(VALUE,na.rm = TRUE) 
+                       ,sum = sum(VALUE,na.rm = TRUE)
+                        , med = median(VALUE,na.rm = TRUE)
+                       , max = max(VALUE,na.rm = TRUE)
+                       , min = min(VALUE,na.rm = TRUE))
+
+
+by_group
+p <-by_group %>% 
+ggplot(aes(x = Year, y = ave,color = Type.of.Residential.Property, group = Type.of.Residential.Property)) + geom_line()  + ylab("Residential Property Price Index")
+
+ggplotly(p)
+by_group
+
+t_houseIndex <- by_group %>% ungroup() %>% filter(Type.of.Residential.Property == 'National - all residential properties')  %>% select(Year, ave)
+t_houseIndex
+
+```
+
+# Rent PRICES
+
+```{r rentValues, echo = FALSE, warning=FALSE}
+
+# REntal Price from 2007 to 2022
+
+
+RIQ02 <- cso_get_data("RIQ02")
+
+RIQ02_filter <- 
+  RIQ02 %>% filter(! str_detect(Location, ","), Property.Type == "All property types",Number.of.Bedrooms =="All bedrooms" )
+
+dim(RIQ02_filter)
+RIQ02_filter
+rentValue <-
+  RIQ02_filter %>% gather(Quarter,VALUE , 3:63, -Property.Type, -Location, -Number.of.Bedrooms, -STATISTIC)
+rentValue
+
+
+rentValue$Year <- as.numeric(substr(rentValue$Quarter,1,4))
+
+group_year <-  group_by(rentValue, Year, Location,Property.Type, Number.of.Bedrooms, STATISTIC)
+
+group_year
+
+
+
+by_group <- group_year %>% summarise( ave = mean(VALUE,na.rm = TRUE) 
+                       ,sum = sum(VALUE,na.rm = TRUE)
+                        , med = median(VALUE,na.rm = TRUE)
+                       , max = max(VALUE,na.rm = TRUE)
+                       , min = min(VALUE,na.rm = TRUE))
+
+by_group
+p <-by_group %>% 
+ggplot(aes(x = Year, y = ave,color = Location, group = Location)) + geom_line()  + ylab("Disposable Income by Household")
+
+ggplotly(p)
+unique(by_group$Location)
+
+t_rentValue <- by_group %>% ungroup()%>%filter(Location == 'Dublin') %>% select(Year, ave)
+t_rentValue
+```
+
+
+# INTEREST RATE
+
+``` {r Interest Rate}
+CBM02  <- cso_get_data("CBM02")
+
+
+CBM02_filter <- 
+  CBM02 %>% filter(Statistic== "Variable interest rate and up to one year fixation on new housing loans")
+
+interestRate <-
+  CBM02_filter %>% gather(Month,VALUE , 3:241, -Statistic, -State)
+
+interestRate$Year <- as.numeric(substr(interestRate$Month,1,4))
+
+group_year <-  group_by(interestRate, Year, Statistic,State)
+
+by_group <- group_year %>% summarise( ave = mean(VALUE,na.rm = TRUE) 
+                       ,sum = sum(VALUE,na.rm = TRUE)
+                        , med = median(VALUE,na.rm = TRUE)
+                       , max = max(VALUE,na.rm = TRUE)
+                       , min = min(VALUE,na.rm = TRUE))
+
+p <-t_interestRate %>% 
+ggplot(aes(x = Year, y = ave)) + geom_line()  + ylab("Interest Rate")
+
+ggplotly(p)
+
+t_interestRate <- by_group %>% ungroup()%>%select(Year, ave)
+
+                           ]
+```
+
+
+# HOUSE CRISIS
+
+``` {r House Affordability}
+
+interval <- 2005:2021
+
+var_names <- c('housePrice','rentPrice','population','interestRate','disposableIncome','houseIndex','makeEndsMeet','houseRegistred')
+
+c_interestRate <- t_interestRate %>%  filter(Year %in% interval)
+c_rentValue <- t_rentValue %>%  filter(Year %in% interval)
+c_houseIndex <- t_houseIndex %>%  filter(Year %in% interval)
+
+cbind(interval, c_interestRate$ave)
+
+
+```

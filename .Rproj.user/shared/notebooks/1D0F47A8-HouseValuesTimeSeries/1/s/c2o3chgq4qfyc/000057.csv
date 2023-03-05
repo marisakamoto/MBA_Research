@@ -1,8 +1,0 @@
-"0","hpa <- read_csv(""E:/DataScienceMBA/TCC/Database/HPA02.20220813T000818.csv"", show_col_types = FALSE)"
-"0",""
-"0",""
-"0",""
-"0","new_names <- c(""Stat"", ""Year"", ""County"",""Dwelling"", ""Stamp"", ""Buyer"", ""Sale"", ""Unit"", ""Value"")"
-"0",""
-"0","names(hpa) <- new_names"
-"0","head(hpa)"

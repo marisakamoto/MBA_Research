@@ -13,9 +13,9 @@ library("plotly")
 1. Importing the Data
 1.1. Housing Prices Database
 ```{r}
-hpa <- read_csv("E:/DataScienceMBA/TCC/Database/HPA02.20220813T000818.csv", show_col_types = FALSE)
-
-
+hpa <- read_csv("D:/DataScienceMBA/TCC/Database/HPA02.20220813T000818.csv", show_col_types = FALSE)
+View(hpa)
+names(hpa)
 
 new_names <- c("Stat", "Year", "County","Dwelling", "Stamp", "Buyer", "Sale", "Unit", "Value")
 
@@ -41,7 +41,7 @@ group_dwelling  %>% summarise( ave = mean(Value,na.rm = TRUE) ,med = median(Valu
 
 ```{r}
 
-interval <- 2010:2022
+interval <- 0:2022
 hpa %>% filter (Year %in% interval) %>% 
 ggplot(aes(x = factor(Year), y = Value, fill = factor(Sale))) + geom_boxplot(outlier.shape=NA) + facet_wrap(~Sale, nrow = 10) + xlab("Year")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +ylim(0, 500000)
@@ -71,7 +71,7 @@ ggplot(aes(x = factor(Year), y = Value, fill = factor(County))) + geom_boxplot(o
 
 interval <- 2010:2022
 p<-by_county %>% filter (Year %in% interval) %>% 
-ggplot(aes(x =Year, y = med, group = County, color = factor(County))) + geom_line()  +ylim(0, 500000) + ylab("Median of House Values")
+ggplot(aes(x =Year, y = med, group = County, color = factor(County))) + geom_line()  +ylim(0, 450000) + ylab("Median of House Values")
 plotly::ggplotly(p)
 
 ```

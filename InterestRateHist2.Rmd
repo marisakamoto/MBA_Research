@@ -1,0 +1,37 @@
+---
+title: "Housing Crisis"
+output: html_notebook
+---
+```{r}
+library(readr)
+library(ggplot2)
+library("tidyverse")
+library("dplyr")
+library("plotly")
+```
+
+1. Importing the Data
+1.1. Housing Prices Database
+```{r}
+intRate <- read_csv("D:/DataScienceMBA/TCC/Database/CBM02.20220819123134.csv", show_col_types = FALSE)
+
+
+glimpse(intRate)
+names(intRate)
+unique(intRate$Statistic)
+max(intRate$`TLIST(M1)`)
+min(intRate$`TLIST(M1)`)
+
+
+view(interest_rate)
+
+filterIR <- intRate %>% transmute(Statistic,`TLIST(M1)`,VALUE)
+filterIR
+new_names <- c("type","ref","InterestRate")
+
+names(filterIR) <- new_names
+
+
+
+
+```

@@ -1,4 +1,0 @@
-"0",""
-"0","interval <- 2010:2022"
-"0","hpa %>% filter (Year %in% interval) %>% "
-"0","ggplot(aes(x = factor(Year), y = Value, fill = factor(County))) + geom_boxplot(outlier.shape=NA) + facet_wrap(~County) + xlab(""Year"") +ylim(0, 500000)"

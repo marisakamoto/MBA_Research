@@ -1,0 +1,42 @@
+---
+title: "Housing Crisis"
+output: html_notebook
+---
+```{r}
+library(readr)
+library(ggplot2)
+library("tidyverse")
+library("dplyr")
+library("plotly")
+```
+
+1. Importing the Data
+1.1. Housing Prices Database
+```{r}
+
+
+interest_rate <- read_csv("D:/DataScienceMBA/TCC/Database/FIM09.20220819123145.csv", show_col_types = FALSE)
+view(interest_rate)
+
+names(interest_rate)
+filterIR <- interest_rate %>% transmute(`Interest Rate`,`TLIST(M1)`,VALUE)
+filterIR
+new_names <- c("type","ref","InterestRate")
+
+names(filterIR) <- new_names
+
+
+
+```
+```{r}
+
+
+
+p<-filterIR  %>% 
+ggplot(aes(x =(round(ref/100)), y = InterestRate, group = type, color = factor(type))) + geom_line()   + ylab("Interest Rate")
+
+
+plotly::ggplotly(p)
+
+
+```
