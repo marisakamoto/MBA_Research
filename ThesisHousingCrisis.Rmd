@@ -7,7 +7,7 @@ date: "2023-02-05"
 ## Setup
 
 ```{r setup, include=FALSE}
-
+install.packages("lubridate")   
 library(readr)
 library(ggplot2)
 library("tidyverse")
@@ -16,6 +16,7 @@ library("plotly")
 library(data.table)
 install.packages("csodata")
 library(csodata)
+library("lubridate")
 
 
 pacotes <- c("plotly", #plataforma gráfica
@@ -62,15 +63,27 @@ population <-
 
 population$Year <- as.numeric(population$Year)
 
-p <-population %>% 
-ggplot(aes(x = Year, y = VALUE)) + geom_line()  + ylab("Population")
+population$Month <- as.Date(as.character(population$Year*10000 + 400+1), "%Y%m%d" )
+
+indx <- data.frame(Month = seq(as.Date('2000-04-01'), length.out=265, by='1 month'))
+
+indx$Quarter <- paste0(year(indx$Month), "Q", quarter(indx$Month))
+
+indx
+
+pop <- merge(indx, population, by = "Month", all.x = TRUE)
+pop$STATISTIC <- 'Population Estimates'
+pop <-  pop %>% mutate(VALUE = na.approx(VALUE))
+
+
+
+keeps <-c("Month", "VALUE")
+t_population <- pop [keeps]
+
+p <-pop %>% 
+ggplot(aes(x = Month, y = VALUE)) + geom_line()  + ylab("Population")
 
 plotly::ggplotly(p)
-
-
-t_population <- population %>% ungroup() %>% select(Year, VALUE)
-
-
 ```
 
 ```{r houseQuantity, echo = FALSE, warning=FALSE}
@@ -82,15 +95,24 @@ HSQ10 <- cso_get_data("HSQ10")
 newHousesRegistrated <-
   HSQ10 %>% gather(Quarter,VALUE , 3:116, -STATISTIC, -County)
 
+
+# newHousesRegistrated$Month <- as.Date( as.character(as.numeric(substr(newHousesRegistrated$Quarter,1,4))*10000+ as.numeric(substr(newHousesRegistrated$Quarter,6,6))*300 + 1), "%Y%m%d" )
+
+
+numHouses <- merge(indx, newHousesRegistrated, by = "Quarter", all.x = TRUE)
+numHouses$VALUE1 <- numHouses$VALUE/3
+
+numHouses %>% filter(Month =='2019-02-01') 
 newHousesRegistrated$Year <- as.integer(substr(newHousesRegistrated$Quarter,1,4))
 
-group_year <-  group_by(newHousesRegistrated, County, Year)
+#group_year <-  group_by(newHousesRegistrated, County, Year)
 
-by_group <- group_year %>% summarise( ave = mean(VALUE,na.rm = TRUE) 
-                       ,sum = sum(VALUE,na.rm = TRUE)
-                        , med = median(VALUE,na.rm = TRUE)
-                       , max = max(VALUE,na.rm = TRUE)
-                       , min = min(VALUE,na.rm = TRUE))
+by_group <- group_year %>% 
+  summarise( ave = mean(VALUE,na.rm = TRUE) ,
+             sum = sum(VALUE,na.rm = TRUE),
+             med = median(VALUE,na.rm = TRUE),
+             max = max(VALUE,na.rm = TRUE),
+             min = min(VALUE,na.rm = TRUE))
 
 p <-by_group %>% 
 ggplot(aes(x = Year, y = sum, group = County, color = County)) + geom_line()  + ylab("New Houses Registered")
@@ -98,7 +120,7 @@ ggplot(aes(x = Year, y = sum, group = County, color = County)) + geom_line()  + 
 plotly::ggplotly(p)
 by_group
 
-t_houseRegistered <- by_group %>% ungroup() %>% filter(County =='All Counties')  %>% select(Year, sum)
+t_houseRegistered <- by_group %>% ungroup() %>% droplevels(.)%>% filter(County =='All Counties')  %>% select(Year, sum)
 
 
 ```
@@ -280,6 +302,7 @@ rentValue
 
 
 rentValue$Year <- as.numeric(substr(rentValue$Quarter,1,4))
+-+
 
 group_year <-  group_by(rentValue, Year, Location,Property.Type, Number.of.Bedrooms, STATISTIC)
 
@@ -321,13 +344,14 @@ interestRate$Year <- as.numeric(substr(interestRate$Month,1,4))
 
 group_year <-  group_by(interestRate, Year, Statistic,State)
 
-by_group <- group_year %>% summarise( ave = mean(VALUE,na.rm = TRUE) 
+by_group <- group_year %>% summarise( ave = mean(VALUE,na.rm = TRUE)
                        ,sum = sum(VALUE,na.rm = TRUE)
                         , med = median(VALUE,na.rm = TRUE)
                        , max = max(VALUE,na.rm = TRUE)
                        , min = min(VALUE,na.rm = TRUE))
 
-t_interestRate <- by_group %>% ungroup()%>%select(Year, ave)
+
+t_interestRate <- by_group %>% select(Year, ave)
 p <-t_interestRate %>% 
 ggplot(aes(x = Year, y = ave)) + geom_line()  + ylab("Interest Rate")
 
