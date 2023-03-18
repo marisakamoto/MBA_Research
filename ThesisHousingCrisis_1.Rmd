@@ -70,6 +70,7 @@ indx <- data.frame(Month = seq(as.Date('2000-04-01'), length.out=265, by='1 mont
 
 indx$Quarter <- paste0(year(indx$Month), "Q", quarter(indx$Month))
 
+indx$Year <- year(indx$Month)
 indx
 
 pop <- merge(indx, population, by = "Month", all.x = TRUE)
@@ -179,17 +180,20 @@ t_makeEndsMeet <- by_group %>% ungroup()  %>% filter(level == 'Hard')%>% select(
 
 # HOUSEHOLD disposable income
 ```{r disposableIncome, echo = FALSE, warning=FALSE}
-
 # DIsposable Income by Gender from 2004 to 2019
 SIA12 <- cso_get_data("SIA12")
 
-SIA12_filter <- 
+SIA12
+
+head(SIA12)
+
+SIA12_filter <-
   SIA12 %>% filter(Sex == "Both sexes", Statistic == "Median Nominal Household Disposable Income")
 
 disposableIncome1 <-
   SIA12_filter %>% gather(Year,VALUE , 3:18, -Statistic, -Sex)
 
-
+disposableIncome1
 # DIsposable Income by Gender from 2020 to 2022
 SIA60 <- cso_get_data("SIA60")
 
@@ -205,18 +209,28 @@ disposableIncome2 <-
 disposableIncome <- bind_rows(disposableIncome1,disposableIncome2)
 
 disposableIncome$Year <- as.numeric(disposableIncome$Year)
+disposableIncome$Month <- as.Date(as.character(disposableIncome$Year*10000 + 400+1), "%Y%m%d" )
 
 
+indx <- data.frame(Month = seq(as.Date('2004-04-01'), length.out=217, by='1 month'))
 
-p <-disposableIncome %>% 
-ggplot(aes(x = Year, y = VALUE,color = VALUE)) + geom_point()  + ylab("Disposable Income by Household")
+indx
+
+dispInc <- merge(indx, disposableIncome, by = "Month", all.x = TRUE)
+dispInc$STATISTIC <- 'Disposable Income'
+dispInc <-  dispInc %>% mutate(VALUE = na.approx(VALUE))
+dispInc <- data.frame(dispInc)
+
+p <-dispInc %>% 
+ggplot(aes(x = Month, y = VALUE,color = VALUE)) + geom_point()  + ylab("Disposable Income by Household")
+
 
 plotly::ggplotly(p)
 
 
 
-t_disposableIncome <- disposableIncome %>% ungroup()   %>% select(Year, VALUE)
 
+t_disposableIncome <- dispInc   %>% dplyr::select(Month, VALUE)
 
 
 ```
@@ -228,13 +242,14 @@ t_disposableIncome <- disposableIncome %>% ungroup()   %>% select(Year, VALUE)
 
 
 HPA02 <- cso_get_data("HPA02")
-
+HPA02
 HPA02_filter <- 
-  HPA02 %>% filter(Type.of.Buyer == "Household Buyer - All", Statistic == "Median Price", Type.of.Sale == "Market", Stamp.Duty.Event == "Filings", Dwelling.Status == "All Dwelling Statuses")
+  HPA02 %>% filter(Type.of.Buyer == "Household Buyer - All", Statistic == "Median Price", Type.of.Sale == "Market", Stamp.Duty.Event == "Filings", Dwelling.Status == "All Dwelling Statuses", County == "All Counties")
 
+HPA02_filter
 
 houseValue <-
-  HPA02_filter %>% gather(Year,VALUE , 3:18, -Type.of.Buyer, -Statistic, -Type.of.Sale, -Stamp.Duty.Event,-Dwelling.Status)
+  HPA02_filter %>% gather(Year,VALUE , 3:19, -Type.of.Buyer, -Statistic, -Type.of.Sale, -Stamp.Duty.Event,-Dwelling.Status)
 houseValue
 
 houseValue$Year <- as.numeric(houseValue$Year)
@@ -261,12 +276,17 @@ HPM06_filter <-
 
 
 houseIndex <-
-  HPM06_filter %>% gather(Month,VALUE , 3:217, -Type.of.Residential.Property, -Statistic, )
-houseIndex
+  HPM06_filter %>% gather(Month,VALUE , 3:219, -Type.of.Residential.Property, -Statistic, ) %>% data.frame()
+
 
 houseIndex$Year <- as.numeric(substr(houseIndex$Month,1,4))
 
 
+houseIndex %>% filter(Type.of.Residential.Property == 'National - all residential properties')
+
+indx
+houseIndex
+houseIndex <- merge(houseIndex,houseValue , by = "Year", all.x = TRUE)
 
 group_year <-  group_by(houseIndex, Year, Type.of.Residential.Property)
 
